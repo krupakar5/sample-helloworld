@@ -22,7 +22,7 @@ try {
     node('master'){
       docker.withRegistry('https://703569030910.dkr.ecr.ap-south-1.amazonaws.com', 'ecr:ap-south-1:ecr-cred') {
             //build image
-	      def customImage = docker.build("703569030910.dkr.ecr.ap-south-1.amazonaws.com/helooworld:${BUILD_NUMBER}", "./$APP_NAME/.")
+	      def customImage = docker.build("703569030910.dkr.ecr.ap-south-1.amazonaws.com/helloworld:${BUILD_NUMBER}", "./$APP_NAME/.")
 	    //push image
             customImage.push()
             }
@@ -43,10 +43,31 @@ try {
     }
 
   stage('Deploy on Dev') {
-  	node('master'){
-        sh ''' sed -i 's/VERSION/'"${BUILD_NUMBER}"'/g' deployment.yaml '''
-  	    sh "kubectl apply -f deployment.yaml"
-      	}
+    node('master'){
+	sh ''' sed -i 's/APPNAME/'"${JOB_NAME}"'/g' deployment.yaml '''
+	sh ''' sed -i 's/VERSION/'"${BUILD_NUMBER}"'/g' deployment.yaml '''
+  	sh "kubectl apply -f deployment.yaml"
+	DEPLOYMENT = sh (
+	      script: 'grep metadata -A3 deployment.yaml|grep name|awk "{print $2}"| head -1 | tr -s " " |cut -d " " -f 3',
+	      returnStdout: true
+	).trim()
+	echo "Creating the deployment..."
+       	OUTPUT = sh (
+		script: "kubectl rollout status evive-$APP_NAME --watch=true | grep -i success | awk '{print \$3}' | cut -b 1-7",
+         	returnStdout: true
+       	).trim()
+       	if (OUTPUT =='success') {
+         	echo " Deployment is successfull"
+		currentBuild.result = "SUCCESS"
+         	return
+       	} else {
+		echo "Starting rollback"
+		sh "kubectl rollout undo deployment/$DEPLOYMENT | awk '{print \$1}' | grep -v NAME"
+         	error("Deployment Unsuccessful.")
+		currentBuild.result = "FAILURE"
+         	return
+        }
+    	}
     }
 }
 catch (err){
