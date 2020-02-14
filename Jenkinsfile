@@ -22,7 +22,7 @@ try {
     node('master'){
       docker.withRegistry('https://703569030910.dkr.ecr.ap-south-1.amazonaws.com', 'ecr:ap-south-1:ecr-cred') {
             //build image
-	      def customImage = docker.build("703569030910.dkr.ecr.ap-south-1.amazonaws.com/helloworld:${BUILD_NUMBER}", "./$APP_NAME/.")
+	      def customImage = docker.build("703569030910.dkr.ecr.ap-south-1.amazonaws.com/helloworld:${BUILD_NUMBER}")
 	    //push image
             customImage.push()
             }
@@ -44,7 +44,6 @@ try {
 
   stage('Deploy on Dev') {
     node('master'){
-	sh ''' sed -i 's/APPNAME/'"${JOB_NAME}"'/g' deployment.yaml '''
 	sh ''' sed -i 's/VERSION/'"${BUILD_NUMBER}"'/g' deployment.yaml '''
   	sh "kubectl apply -f deployment.yaml"
 	DEPLOYMENT = sh (
@@ -53,7 +52,7 @@ try {
 	).trim()
 	echo "Creating the deployment..."
        	OUTPUT = sh (
-		script: "kubectl rollout status evive-$APP_NAME --watch=true | grep -i success | awk '{print \$3}' | cut -b 1-7",
+		script: "kubectl rollout status helloworld --watch=true | grep -i success | awk '{print \$3}' | cut -b 1-7",
          	returnStdout: true
        	).trim()
        	if (OUTPUT =='success') {
