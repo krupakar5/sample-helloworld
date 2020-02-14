@@ -20,9 +20,9 @@ try {
 
   stage('Build And Push Docker Image') {
     node('master'){
-      docker.withRegistry('https://703569030910.dkr.ecr.ap-south-1.amazonaws.com', 'ecr:ap-south-1:ecr-cred') {
+      docker.withRegistry('https://xxxxxxxxxx.dkr.ecr.ap-south-1.amazonaws.com', 'ecr:ap-south-1:ecr-cred') {
             //build image
-	      def customImage = docker.build("703569030910.dkr.ecr.ap-south-1.amazonaws.com/helloworld:${BUILD_NUMBER}")
+	      def customImage = docker.build("xxxxxxxxxx.dkr.ecr.ap-south-1.amazonaws.com/helloworld:${BUILD_NUMBER}")
 	    //push image
             customImage.push()
             }
