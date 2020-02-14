@@ -39,7 +39,7 @@ try {
 	).trim()
 	echo "Creating the deployment..."
        	OUTPUT = sh (
-		script: "kubectl rollout status helloworld --watch=true | grep -i success | awk '{print \$3}' | cut -b 1-7",
+		script: "kubectl rollout status deployment/helloworld --watch=true | grep -i success | awk '{print \$3}' | cut -b 1-7",
          	returnStdout: true
        	).trim()
        	if (OUTPUT =='success') {
