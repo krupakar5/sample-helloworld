@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: helloworld
+  labels:
+    app: helloworld
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app: helloworld
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloworld
+  labels:
+    app: helloworld
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  replicas: 2
+  selector:
+    matchLabels:
+      app: helloworld
+  template:
+    metadata:
+      labels:
+        app: helloworld
+    spec:
+      initContainers:
+        - name: changing-volume-permissions
+          image: busybox
+          command: ["sh", "-c", "chown -R 8000:8000 /opt/evive/apps/logs"]
+          volumeMounts:
+            - name: applog
+              mountPath: /opt/evive/apps/logs
+      volumes:
+        - name: applog
+          hostPath:
+            path: /var/log/eviveapps/helloworld
+        - name: app-cert-secret
+          secret:
+            secretName: app-cert
+            items:
+              - key: app-cert.p12
+                path: app-cert.p12
+        - name: vault-secret
+          secret:
+            secretName: vault.txt
+            items:
+              - key: vault.txt
+                path: vault.txt
+      containers:
+        - name: history
+          image: 703569030910.dkr.ecr.ap-south-1.amazonaws.com/evive/APPNAME:VERSION
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: app-cert-secret
+              readOnly: true
+              mountPath: /opt/evive/apps/properties/cert
+            - name: vault-secret
+              readOnly: true
+              mountPath: /opt/evive/apps/properties/vault
+            - name: applog
+              mountPath: /opt/evive/apps/logs
+          readinessProbe:
+            httpGet:
+              path: /manage/health
+              scheme: HTTPS
+              port: 8080
+            initialDelaySeconds: 60
+            failureThreshold: 2
+            periodSeconds: 10
+          ports:
+            - containerPort: 8080
+          env:
+            - name: KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ssl-app-secrets
+                  key: key
+            - name: PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: ssl-app-secrets
+                  key: password
+      imagePullSecrets:
+        - name: ap-south-1-ecr-registry
