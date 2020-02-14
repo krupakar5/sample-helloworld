@@ -45,51 +45,51 @@ spec:
         - name: applog
           hostPath:
             path: /var/log/eviveapps/helloworld
-        - name: app-cert-secret
-          secret:
-            secretName: app-cert
-            items:
-              - key: app-cert.p12
-                path: app-cert.p12
-        - name: vault-secret
-          secret:
-            secretName: vault.txt
-            items:
-              - key: vault.txt
-                path: vault.txt
+       # - name: app-cert-secret
+       #   secret:
+       #     secretName: app-cert
+       #     items:
+       #       - key: app-cert.p12
+       #         path: app-cert.p12
+       # - name: vault-secret
+       #   secret:
+       #     secretName: vault.txt
+       #     items:
+       #       - key: vault.txt
+       #         path: vault.txt
       containers:
         - name: history
-          image: 703569030910.dkr.ecr.ap-south-1.amazonaws.com/evive/APPNAME:VERSION
+          image: 703569030910.dkr.ecr.ap-south-1.amazonaws.com/helloworld:VERSION
           imagePullPolicy: Always
           volumeMounts:
-            - name: app-cert-secret
-              readOnly: true
-              mountPath: /opt/evive/apps/properties/cert
-            - name: vault-secret
-              readOnly: true
-              mountPath: /opt/evive/apps/properties/vault
+          #  - name: app-cert-secret
+          #    readOnly: true
+          #    mountPath: /opt/evive/apps/properties/cert
+          #  - name: vault-secret
+          #    readOnly: true
+          #    mountPath: /opt/evive/apps/properties/vault
             - name: applog
               mountPath: /opt/evive/apps/logs
           readinessProbe:
             httpGet:
-              path: /manage/health
-              scheme: HTTPS
+              path: /SpringBootRestApi
+              scheme: HTTP
               port: 8080
             initialDelaySeconds: 60
             failureThreshold: 2
             periodSeconds: 10
           ports:
             - containerPort: 8080
-          env:
-            - name: KEY
-              valueFrom:
-                secretKeyRef:
-                  name: ssl-app-secrets
-                  key: key
-            - name: PASSWD
-              valueFrom:
-                secretKeyRef:
-                  name: ssl-app-secrets
-                  key: password
+         # env:
+         #   - name: KEY
+         #     valueFrom:
+         #       secretKeyRef:
+         #         name: ssl-app-secrets
+         #         key: key
+         #   - name: PASSWD
+         #     valueFrom:
+         #       secretKeyRef:
+         #         name: ssl-app-secrets
+         #         key: password
       imagePullSecrets:
         - name: ap-south-1-ecr-registry
