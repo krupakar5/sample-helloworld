@@ -20,9 +20,12 @@ try {
 
   stage('Build And Push Docker Image') {
     node('master'){
-      sh "docker login "
-      sh "docker build -t helloworld:${BUILD_NUMBER} ."
-      sh "docker push helloworld:${BUILD_NUMBER}"
+      docker.withRegistry('https://703569030910.dkr.ecr.ap-south-1.amazonaws.com', 'ecr:ap-south-1:ecr-cred') {
+            //build image
+	      def customImage = docker.build("703569030910.dkr.ecr.ap-south-1.amazonaws.com/helooworld:${BUILD_NUMBER}", "./$APP_NAME/.")
+	    //push image
+            customImage.push()
+            }
     }
   }
 
