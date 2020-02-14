@@ -48,7 +48,7 @@ try {
          	return
        	} else {
 		echo "Starting rollback"
-		sh "kubectl rollout undo deployment/$DEPLOYMENT | awk '{print \$1}' | grep -v NAME"
+		sh "kubectl rollout undo deployment/helloworld | awk '{print \$1}' | grep -v NAME"
          	error("Deployment Unsuccessful.")
 		currentBuild.result = "FAILURE"
          	return
