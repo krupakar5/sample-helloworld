@@ -59,7 +59,7 @@ spec:
        #         path: vault.txt
       containers:
         - name: history
-          image: 703569030910.dkr.ecr.ap-south-1.amazonaws.com/helloworld:VERSION
+          image: 703569030910.dkr.ecr.ap-south-1.amazonaws.com/helloworld:5
           imagePullPolicy: Always
           volumeMounts:
           #  - name: app-cert-secret
